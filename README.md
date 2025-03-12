@@ -8,8 +8,8 @@
 
 ## Implementation
 - [ ] Implement Basic Columnar Storage
-    - [ ] Define Table Schema & Metadata
-    - [ ] Implement Column-Wise Metadata storage
+    - [x] Define Table Schema & Metadata
+    - [x] Implement Column-Wise Metadata storage
     - [ ] Implement Metadata Loading & Table Initialization
 - [ ] Implement Indexing for faster queries
     - [ ] Add Min-Max for fast filtering

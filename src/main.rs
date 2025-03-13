@@ -20,4 +20,6 @@ fn main() {
     let db = ColumnStore::new("data/");
     db.insert_row(&schema, vec!["1", "Alice", "25"]);
     db.insert_row(&schema, vec!["2", "Bob", "30"]);
+
+    db.scan_column(&schema, "age");
 }

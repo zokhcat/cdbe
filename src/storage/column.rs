@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{fs::{self, OpenOptions}, io::Write};
+use std::{fs::{self, File, OpenOptions}, io::{BufReader, Read, Write}, vec};
 
 use super::table::TableSchema;
 
@@ -40,6 +40,33 @@ impl ColumnStore  {
                 }
                 _ => panic!("Unsupported data type"),
             }
+        }
+    }
+
+    pub fn scan_column(&self, table: &TableSchema, column_name: &str) {
+        let path = format!("{}/{}_{}.data", self.base_path, table.table_name, column_name);
+        let file = File::open(path).unwrap();
+        let mut reader = BufReader::new(file);
+
+        match table.columns.iter().find(|c| c.name == column_name).unwrap().data_type.as_str() {
+            "int" => {
+                let mut buffer = [0u8; 4];
+                while reader.read_exact(&mut buffer).is_ok() {
+                    let val = i32::from_le_bytes(buffer);
+                    println!("Read value: {}", val);
+                }
+            }
+            "string" => {
+                let mut len_buf = [0u8; 4];
+                while reader.read_exact(&mut len_buf).is_ok() {
+                    let len = u32::from_le_bytes(len_buf) as usize;
+                    let mut buffer = vec![0u8; len];
+                    reader.read_exact(&mut buffer).unwrap();
+                    let val = String::from_utf8(buffer).unwrap();
+                    println!("Read value: {}", val);
+                }
+            }
+            _ => panic!("Unsupported data type"),
         }
     }
 }

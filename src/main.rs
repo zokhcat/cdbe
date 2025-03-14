@@ -5,21 +5,21 @@ pub mod storage;
 fn main() {
     println!("Columnar Database Engine!");
 
-    // Code to test out the implementation
-    let schema = TableSchema {
+    let store = ColumnStore::new("data");
+    
+    let table = TableSchema {
         table_name: "employees".to_string(),
-        columns: vec![
-            Column { name: "id".to_string(), data_type: "int".to_string() },
-            Column { name: "name".to_string(), data_type: "string".to_string() },
-            Column { name: "age".to_string(), data_type: "int".to_string()},
-        ],
+        columns: vec![Column {
+            name: "age".to_string(),
+            data_type: "int".to_string(),
+        }],
     };
 
-    schema.save("data/");
+    store.insert_row(&table, vec!["25"]);
+    store.insert_row(&table, vec!["30"]);
+    store.insert_row(&table, vec!["40"]);
+    store.insert_row(&table, vec!["50"]);
 
-    let db = ColumnStore::new("data/");
-    db.insert_row(&schema, vec!["1", "Alice", "25"]);
-    db.insert_row(&schema, vec!["2", "Bob", "30"]);
-
-    db.scan_column(&schema, "age");
+    let results = store.filter_column(&table, "age", "30");
+    println!("Filtered Results: {:?}", results); 
 }

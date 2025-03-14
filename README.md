@@ -1,4 +1,4 @@
-## CDBE - Columar Database engine
+## CDBE - Columnar Database engine
 
 - An attempt to achieve faster querying through column wise data storage than row-wise storage.
 - Data is stored in three formats
@@ -7,12 +7,12 @@
     - `.idx` for indexing, min/max indexing(yet to research how to implement)
 
 ## Implementation
-- [ ] Implement Basic Columnar Storage
+- [x] Implement Basic Columnar Storage
     - [x] Define Table Schema & Metadata
     - [x] Implement Column-Wise Metadata storage
-    - [ ] Implement Metadata Loading & Table Initialization
-- [ ] Implement Indexing for faster queries
-    - [ ] Add Min-Max for fast filtering
-    - [ ] Implementing Offset-Based Index for faster reads
+    - [x] Implement Metadata Loading & Table Initialization
+- [x] Implement Indexing for faster queries
+    - [x] Add Min-Max for fast filtering
+    - [x] Implementing Offset-Based Index for faster reads
 - [ ] Query Execution
     - [ ] Implement query execution in your columnar DB

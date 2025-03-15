@@ -2,6 +2,7 @@ use storage::{column::{Column, ColumnStore}, table::TableSchema};
 
 pub mod storage;
 
+// lambda function tests out the usage of the database engine
 fn main() {
     println!("Columnar Database Engine!");
 
@@ -15,6 +16,8 @@ fn main() {
         }],
     };
 
+    table.save("data");
+
     store.insert_row(&table, vec!["25"]);
     store.insert_row(&table, vec!["30"]);
     store.insert_row(&table, vec!["40"]);
@@ -22,4 +25,7 @@ fn main() {
 
     let results = store.filter_column(&table, "age", "30");
     println!("Filtered Results: {:?}", results); 
+
+    // Loading metadata
+    TableSchema::load_metadata("data");
 }

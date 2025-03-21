@@ -19,6 +19,52 @@
 
 <hr>
 
+# CLI Reference
+
+✅ Create a table
+
+```sh
+cargo run -- create-table users id:int name:string age:int
+```
+🟢 Output:
+
+```sh
+Table 'users' created!
+```
+✅ Insert a row
+
+```sh
+cargo run -- insert users 1 "Alice" 25
+```
+🟢 Output:
+
+```sh
+Inserted into 'users': ["1", "Alice", "25"]
+```
+✅ Scan table
+
+```sh
+cargo run -- scan users
+```
+🟢 Output:
+
+```sh
+Read value: 1
+Read value: Alice
+Read value: 25
+```
+✅ List tables
+
+```sh
+cargo run -- list-tables
+```
+🟢 Output:
+
+```sh
+Tables present in the database:
+- users [id (int), name (string), age (int)]
+```
+
 # API Reference
 
 ## Modules
@@ -143,5 +189,5 @@ fn main() {
 This reference provides a clear overview of the API structure, usage, and example implementation.
 
 ## Future todos:
-- [ ] Implement command line using clap
+- [x] Implement command line using clap
 - [ ] test the benchmark with postgresql database.

@@ -3,7 +3,7 @@ use std::{fs::{self, File, OpenOptions}, io::{BufRead, BufReader, Read, Seek, Se
 
 use super::table::TableSchema;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Column {
     pub name: String,
     pub data_type: String
@@ -91,7 +91,7 @@ impl ColumnStore  {
                 }
             }
             "string" => {
-                let mut len_buf = [0u8; 4];
+                let mut len_buf: [u8; 4] = [0u8; 4];
                 while reader.read_exact(&mut len_buf).is_ok() {
                     let len = u32::from_le_bytes(len_buf) as usize;
                     let mut buffer = vec![0u8; len];

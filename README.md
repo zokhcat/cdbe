@@ -133,6 +133,9 @@ pub struct TableSchema {
 
 #### Methods
 
+#### `TableSchema::new(table_name: String, columns: Vec<String>) -> Self`
+Creates a table with the name and columns inside it.
+
 ##### `TableSchema::save(&self, base_path: &str)`
 Saves the table schema metadata as a JSON file.
 

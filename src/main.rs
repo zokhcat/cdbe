@@ -8,11 +8,11 @@ pub mod utils {
     pub mod simd;
 }
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fs, path::Path};
 
 use storage::{column:: ColumnStore, table::TableSchema};
 use clap::{command, Parser, Subcommand};
-use utils::simd::SimdOp;
+use utils::simd::{LogicalOp, SimdOp};
 
 
 #[derive(Parser)]
@@ -76,12 +76,33 @@ enum Commands {
         threshold_value: i32
     },
 
+    FilterSimdLogical {
+        table_name: String,
+        column1: String,
+        op1: SimdOp,
+        value1: i32,
+        column2: String,
+        op2: SimdOp,
+        value2: i32,
+        logic: LogicalOp,
+    },
+
     ListTables,
 }
 
 fn main() {
     let cli = Cli::parse();
     let base_path = "data";
+
+    let data_dir = Path::new("./data");
+
+    if !data_dir.exists() {
+        match fs::create_dir_all(data_dir) {
+            Ok(_) => println!("Created data directory at ./data"),
+            Err(e) => eprintln!("Failed to create data directory: {}", e),
+        }
+    }
+    
     let tables: HashMap<String, TableSchema> = TableSchema::load_metadata(base_path);
 
     match &cli.command {
@@ -151,6 +172,24 @@ fn main() {
             if let Some(schema) = tables.get(table_name) {
                 let store = ColumnStore::new(base_path);
                 store.filter_column_simd(schema, column_name, *threshold_value, SimdOp::Ge);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+
+        Commands::FilterSimdLogical { table_name, column1, op1, value1, column2, op2, value2, logic } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_columns_logical_simd(
+                    schema,
+                    &column1,
+                    *op1,
+                    *value1,
+                    &column2,
+                    *op2,
+                    *value2,
+                    *logic,
+                );
             } else {
                 println!("Table '{}' not found.", table_name);
             }

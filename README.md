@@ -143,6 +143,24 @@ Matched value at index 5: 35
 Matched value at index 6: 54
 ```
 
+- for using logical operator
+
+```sh
+cargo run -- filter-simd-logical users age gt 25 age lt 54 or
+```
+🟢 Output:
+
+```sh
+Matched row at index 5: age = 35, age = 35
+Matched row at index 4: age = 65, age = 65
+Matched row at index 1: age = 32, age = 32
+Matched row at index 2: age = 43, age = 43
+Matched row at index 3: age = 54, age = 54
+Matched row at index 6: age = 54, age = 54
+Matched row at index 0: age = 25, age = 25
+```
+
+
 ✅ List tables
 
 ```sh

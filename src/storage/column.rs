@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs::{self, File, OpenOptions}, io::{BufRead, BufReader, Read, Seek, SeekFrom, Write}, vec};
 
 use super::table::TableSchema;
-use crate::utils::simd::{filter_simd_32, SimdOp};
+use crate::utils::simd::{filter_simd_32, filter_with_logical_op, LogicalOp, SimdOp};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Column {
@@ -176,16 +176,7 @@ impl ColumnStore  {
     }
 
     pub fn filter_column_simd(&self, table: &TableSchema, column_name: &str, threshold_value: i32, op: SimdOp) {
-        let path = format!("{}/{}_{}.data", self.base_path, table.table_name, column_name);
-        let mut file = File::open(path).unwrap();
-        let mut buffer = Vec::new();
-        let mut reader = BufReader::new(&mut file);
-        let mut val_buf = [0u8; 4];
-    
-        while reader.read_exact(&mut val_buf).is_ok() {
-            let val = i32::from_le_bytes(val_buf);
-            buffer.push(val);
-        }
+        let buffer = self.read_column_i32(table, column_name);
     
         let matching_indices = filter_simd_32(&buffer, threshold_value, op);
     
@@ -193,5 +184,44 @@ impl ColumnStore  {
             println!("Matched value at index {}: {}", idx, buffer[idx]);
         }
     }
+
+    pub fn filter_columns_logical_simd(
+        &self,
+        table: &TableSchema,
+        col1: &str,
+        op1: SimdOp,
+        val1: i32,
+        col2: &str,
+        op2: SimdOp,
+        val2: i32,
+        logic_op: LogicalOp,
+    ) {
+        let buf1 = self.read_column_i32(table, col1);
+        let buf2 = self.read_column_i32(table, col2);
+    
+        let final_res = filter_with_logical_op(&buf1, op1, val1, &buf2, op2, val2, logic_op);
+    
+        for idx in final_res {
+            println!(
+                "Matched row at index {}: {} = {}, {} = {}",
+                idx, col1, buf1[idx], col2, buf2[idx]
+            );
+        }
+    }
+
+    fn read_column_i32(&self, table: &TableSchema, column_name: &str) -> Vec<i32> {
+        let path = format!("{}/{}_{}.data", self.base_path, table.table_name, column_name);
+        let file = File::open(path).unwrap();
+        let mut reader = BufReader::new(file);
+        let mut buffer = Vec::new();
+        let mut val_buf = [0u8; 4];
+    
+        while reader.read_exact(&mut val_buf).is_ok() {
+            buffer.push(i32::from_le_bytes(val_buf));
+        }
+    
+        buffer
+    }
+    
     
 }

@@ -1,5 +1,8 @@
-use std::arch::x86_64::*;
+use std::{arch::x86_64::*, collections::HashSet};
 
+use clap::ValueEnum;
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, ValueEnum)]
 pub enum SimdOp {
     Ne,
     Eq,
@@ -7,6 +10,12 @@ pub enum SimdOp {
     Gt,
     Le,
     Ge,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, ValueEnum)]
+pub enum LogicalOp {
+    And,
+    Or,
 }
 
 pub fn filter_simd_32(buffer: &[i32], threshold_value: i32, op: SimdOp) -> Vec<usize> {
@@ -65,4 +74,30 @@ pub fn filter_simd_32(buffer: &[i32], threshold_value: i32, op: SimdOp) -> Vec<u
     }
 
     results
+}
+
+pub fn filter_with_logical_op(
+    buf1: &[i32],
+    op1: SimdOp,
+    val1: i32,
+    buf2: &[i32],
+    op2: SimdOp,
+    val2: i32,
+    logic_op: LogicalOp,
+) -> Vec<usize> {
+    let mask1 = filter_simd_32(buf1, val1, op1);
+    let mask2 = filter_simd_32(buf2, val2, op2);
+    combine_masks(&mask1, &mask2, logic_op)
+}
+
+pub fn combine_masks(mask1: &[usize], mask2: &[usize], op: LogicalOp) -> Vec<usize> {
+    use LogicalOp::*;
+
+    let set1: HashSet<_> = mask1.iter().cloned().collect();
+    let set2: HashSet<_> = mask2.iter().cloned().collect();
+
+    match op {
+        And => set1.intersection(&set2).cloned().collect(),
+        Or => set1.union(&set2).cloned().collect(),
+    }
 }

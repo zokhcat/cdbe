@@ -1,6 +1,7 @@
 use std::arch::x86_64::*;
 
 pub enum SimdOp {
+    Ne,
     Eq,
     Lt,
     Gt,
@@ -21,6 +22,10 @@ pub fn filter_simd_32(buffer: &[i32], threshold_value: i32, op: SimdOp) -> Vec<u
             let chunk = _mm_loadu_si128(ptr);
             let mask = match op {
                 SimdOp::Eq => _mm_cmpeq_epi32(chunk, cmp),
+                SimdOp::Ne => {
+                    let eq = _mm_cmpeq_epi32(chunk, cmp);
+                    _mm_cmpeq_epi32(_mm_setzero_si128(), eq)
+                }
                 SimdOp::Lt => _mm_cmplt_epi32(chunk, cmp),
                 SimdOp::Gt => _mm_cmpgt_epi32(chunk, cmp),
                 SimdOp::Le => {
@@ -48,6 +53,7 @@ pub fn filter_simd_32(buffer: &[i32], threshold_value: i32, op: SimdOp) -> Vec<u
     for j in i..len {
         let matched = match op {
             SimdOp::Eq => buffer[j] == threshold_value,
+            SimdOp::Ne => buffer[j] != threshold_value,
             SimdOp::Lt => buffer[j] < threshold_value,
             SimdOp::Gt => buffer[j] > threshold_value,
             SimdOp::Le => buffer[j] <= threshold_value,

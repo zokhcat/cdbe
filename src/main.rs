@@ -46,6 +46,12 @@ enum Commands {
         threshold_value: i32
     },
 
+    FilterSimdNotEq {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
     FilterSimdGt {
         table_name: String,
         column_name: String,
@@ -105,6 +111,14 @@ fn main() {
             if let Some(schema) = tables.get(table_name) {
                 let store = ColumnStore::new(base_path);
                 store.filter_column_simd(schema, column_name, *threshold_value, SimdOp::Eq);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdNotEq { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd(schema, column_name, *threshold_value, SimdOp::Ne);
             } else {
                 println!("Table '{}' not found.", table_name);
             }

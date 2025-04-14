@@ -62,6 +62,8 @@ Read value: 54
 
 ✅ Filter using x86 SIMD instructions
 
+<i>NOTE: This only supports int data types</i>
+
 - for values equal to a threshold value
 ```sh
 cargo run -- filter-simd-eq users age 54
@@ -70,6 +72,21 @@ cargo run -- filter-simd-eq users age 54
 
 ```sh
 Matched value at index 3: 54
+Matched value at index 6: 54
+```
+
+- for values not equal to a threshold value
+```sh
+cargo run -- filter-simd-not-eq users age 25
+```
+🟢 Output:
+
+```sh
+Matched value at index 1: 32
+Matched value at index 2: 43
+Matched value at index 3: 54
+Matched value at index 4: 65
+Matched value at index 5: 35
 Matched value at index 6: 54
 ```
 

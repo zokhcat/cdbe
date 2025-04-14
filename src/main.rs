@@ -1,9 +1,18 @@
+#![feature(portable_simd)]
+
+pub mod storage {
+    pub mod column;
+    pub mod table;
+}
+pub mod utils {
+    pub mod simd;
+}
+
 use std::collections::HashMap;
 
 use storage::{column:: ColumnStore, table::TableSchema};
 use clap::{command, Parser, Subcommand};
 
-pub mod storage;
 
 #[derive(Parser)]
 #[command(name = "cdbe")]
@@ -27,6 +36,13 @@ enum Commands {
 
     Scan {
         table_name: String,
+        column_name: String
+    },
+
+    FilterSimdGt {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
     },
 
     ListTables,
@@ -52,10 +68,18 @@ fn main() {
                 println!("Table '{}' not found.", table_name);
             }
         }
-        Commands::Scan { table_name } => {
+        Commands::Scan { table_name, column_name } => {
             if let Some(schema) = tables.get(table_name) {
                 let store = ColumnStore::new(base_path);
-                store.scan_column(schema, &schema.columns[0].name);
+                store.scan_column(schema, column_name);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdGt { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd(schema, column_name, *threshold_value);
             } else {
                 println!("Table '{}' not found.", table_name);
             }

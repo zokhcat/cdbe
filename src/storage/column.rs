@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs::{self, File, OpenOptions}, io::{BufRead, BufReader, Read, Seek, SeekFrom, Write}, vec};
 
 use super::table::TableSchema;
+use crate::utils::simd::filter_simd_gt_32;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Column {
@@ -85,19 +86,41 @@ impl ColumnStore  {
         match table.columns.iter().find(|c| c.name == column_name).unwrap().data_type.as_str() {
             "int" => {
                 let mut buffer = [0u8; 4];
-                while reader.read_exact(&mut buffer).is_ok() {
-                    let val = i32::from_le_bytes(buffer);
-                    println!("Read value: {}", val);
+                loop {
+                    match reader.read_exact(&mut buffer) {
+                    Ok(_) => {
+                        let val = i32::from_le_bytes(buffer);
+                        println!("Read value: {}", val);
+                    }
+                    Err(e) => {
+                        if e.kind() == std::io::ErrorKind::UnexpectedEof {
+                            break;
+                        } else {
+                        panic!("Failed to read int column: {:?}", e);
+                        }
+                    }
                 }
             }
-            "string" => {
-                let mut len_buf: [u8; 4] = [0u8; 4];
-                while reader.read_exact(&mut len_buf).is_ok() {
-                    let len = u32::from_le_bytes(len_buf) as usize;
-                    let mut buffer = vec![0u8; len];
-                    reader.read_exact(&mut buffer).unwrap();
-                    let val = String::from_utf8(buffer).unwrap();
-                    println!("Read value: {}", val);
+        }
+        "string" => {
+            loop {
+                let mut len_buf = [0u8; 4];
+                match reader.read_exact(&mut len_buf) {
+                    Ok(_) => {
+                        let len = u32::from_le_bytes(len_buf) as usize;
+                        let mut buffer = vec![0u8; len];
+                        reader.read_exact(&mut buffer).unwrap();
+                        let val = String::from_utf8(buffer).unwrap();
+                        println!("Read value: {}", val);
+                    }
+                    Err(e) => {
+                        if e.kind() == std::io::ErrorKind::UnexpectedEof {
+                            break;
+                        } else {
+                            panic!("Failed to read string column: {:?}", e);
+                        }
+                        }
+                    }
                 }
             }
             _ => panic!("Unsupported data type"),
@@ -151,4 +174,24 @@ impl ColumnStore  {
 
         results
     }
+
+    pub fn filter_column_simd(&self, table: &TableSchema, column_name: &str, threshold_value: i32) {
+        let path = format!("{}/{}_{}.data", self.base_path, table.table_name, column_name);
+        let mut file = File::open(path).unwrap();
+        let mut buffer = Vec::new();
+        let mut reader = BufReader::new(&mut file);
+        let mut val_buf = [0u8; 4];
+    
+        while reader.read_exact(&mut val_buf).is_ok() {
+            let val = i32::from_le_bytes(val_buf);
+            buffer.push(val);
+        }
+    
+        let matching_indices = filter_simd_gt_32(&buffer, threshold_value);
+    
+        for idx in matching_indices {
+            println!("Matched value at index {}: {}", idx, buffer[idx]);
+        }
+    }
+    
 }

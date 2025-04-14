@@ -44,20 +44,38 @@ Inserted into 'users': ["1", "Alice", "25"]
 ✅ Scan table
 
 ```sh
-cargo run -- scan users
+cargo run -- scan users age
 ```
 🟢 Output:
 
 ```sh
-Read value: 1
-Read value: Alice
 Read value: 25
 ```
+
+✅ Filter using x86 SIMD instructions
+- for values greater than a threshold value
+
+```sh
+cargo run -- filter-simd-gt users age 30
+```
+🟢 Output:
+
+```sh
+Matched value at index 1: 32
+Matched value at index 2: 43
+Matched value at index 3: 54
+Matched value at index 4: 65
+Matched value at index 5: 35
+Matched value at index 6: 54
+```
+
 ✅ List tables
 
 ```sh
 cargo run -- list-tables
 ```
+
+
 🟢 Output:
 
 ```sh

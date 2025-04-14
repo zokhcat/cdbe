@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs::{self, File, OpenOptions}, io::{BufRead, BufReader, Read, Seek, SeekFrom, Write}, vec};
 
 use super::table::TableSchema;
-use crate::utils::simd::filter_simd_gt_32;
+use crate::utils::simd::{filter_simd_32, SimdOp};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Column {
@@ -175,7 +175,7 @@ impl ColumnStore  {
         results
     }
 
-    pub fn filter_column_simd(&self, table: &TableSchema, column_name: &str, threshold_value: i32) {
+    pub fn filter_column_simd(&self, table: &TableSchema, column_name: &str, threshold_value: i32, op: SimdOp) {
         let path = format!("{}/{}_{}.data", self.base_path, table.table_name, column_name);
         let mut file = File::open(path).unwrap();
         let mut buffer = Vec::new();
@@ -187,7 +187,7 @@ impl ColumnStore  {
             buffer.push(val);
         }
     
-        let matching_indices = filter_simd_gt_32(&buffer, threshold_value);
+        let matching_indices = filter_simd_32(&buffer, threshold_value, op);
     
         for idx in matching_indices {
             println!("Matched value at index {}: {}", idx, buffer[idx]);

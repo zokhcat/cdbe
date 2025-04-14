@@ -19,6 +19,8 @@
 
 <hr>
 
+<i>NOTE: Rustup Nightly version is required to run</i>
+
 # CLI Reference
 
 ✅ Create a table
@@ -50,13 +52,68 @@ cargo run -- scan users age
 
 ```sh
 Read value: 25
+Read value: 32
+Read value: 43
+Read value: 54
+Read value: 65
+Read value: 35
+Read value: 54
 ```
 
 ✅ Filter using x86 SIMD instructions
+
+- for values equal to a threshold value
+```sh
+cargo run -- filter-simd-eq users age 54
+```
+🟢 Output:
+
+```sh
+Matched value at index 3: 54
+Matched value at index 6: 54
+```
+
 - for values greater than a threshold value
 
 ```sh
 cargo run -- filter-simd-gt users age 30
+```
+🟢 Output:
+
+```sh
+Matched value at index 1: 32
+Matched value at index 2: 43
+Matched value at index 3: 54
+Matched value at index 4: 65
+Matched value at index 5: 35
+Matched value at index 6: 54
+```
+
+- for values lesser than a threshold value
+
+```sh
+cargo run -- filter-simd-lt users age 30
+```
+🟢 Output:
+
+```sh
+Matched value at index 0: 25
+```
+- for values lesser than equal to a threshold value
+
+```sh
+cargo run -- filter-simd-lt-eq users age 30
+```
+🟢 Output:
+
+```sh
+Matched value at index 0: 25
+```
+
+- for values greater than equal to a threshold value
+
+```sh
+cargo run -- filter-simd-gt-eq users age 30
 ```
 🟢 Output:
 

@@ -12,6 +12,7 @@ use std::collections::HashMap;
 
 use storage::{column:: ColumnStore, table::TableSchema};
 use clap::{command, Parser, Subcommand};
+use utils::simd::SimdOp;
 
 
 #[derive(Parser)]
@@ -39,7 +40,31 @@ enum Commands {
         column_name: String
     },
 
+    FilterSimdEq {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
     FilterSimdGt {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
+    FilterSimdLt {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
+    FilterSimdGtEq {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
+    FilterSimdLtEq {
         table_name: String,
         column_name: String,
         threshold_value: i32
@@ -76,10 +101,42 @@ fn main() {
                 println!("Table '{}' not found.", table_name);
             }
         }
+        Commands::FilterSimdEq { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd(schema, column_name, *threshold_value, SimdOp::Eq);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdLt { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd(schema, column_name, *threshold_value, SimdOp::Lt);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
         Commands::FilterSimdGt { table_name, column_name, threshold_value } => {
             if let Some(schema) = tables.get(table_name) {
                 let store = ColumnStore::new(base_path);
-                store.filter_column_simd(schema, column_name, *threshold_value);
+                store.filter_column_simd(schema, column_name, *threshold_value, SimdOp::Gt);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdLtEq { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd(schema, column_name, *threshold_value, SimdOp::Le);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdGtEq { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd(schema, column_name, *threshold_value, SimdOp::Ge);
             } else {
                 println!("Table '{}' not found.", table_name);
             }

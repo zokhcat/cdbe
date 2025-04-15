@@ -30,7 +30,9 @@ chomd +x test_simd.sh
 ./test_simd.sh
 ```
 
-# CLI Reference
+SIMD filtering support doc - [url](https://www.notion.so/zokhcat/SIMD-Filtering-Support-in-cdbe-1d688729c8048023b4a3f93eab06d0ba?pvs=4)
+
+# CLI Usage
 
 ✅ Create a table
 

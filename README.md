@@ -4,7 +4,7 @@
 - Data is stored in three formats
     - `.data` for storage data of models
     - `.meta` for metadata of schema
-    - `.idx` for indexing, min/max indexing(yet to research how to implement)
+    - `.idx` for indexing, min/max indexing
 
 ## Implementation
 - [x] Implement Basic Columnar Storage
@@ -20,6 +20,15 @@
 <hr>
 
 <i>NOTE: Rustup Nightly version is required to run</i>
+
+### ▶️ Try It Out (with Bash)
+
+To see how the columnar database works, run the included test script:
+
+```bash
+chomd +x test_simd.sh
+./test_simd.sh
+```
 
 # CLI Reference
 
@@ -60,7 +69,7 @@ Read value: 35
 Read value: 54
 ```
 
-✅ Filter using x86 SIMD instructions
+✅ Filter using x86 SIMD instructions(4 * i32)
 
 <i>NOTE: This only supports int data types</i>
 
@@ -159,7 +168,103 @@ Matched row at index 3: age = 54, age = 54
 Matched row at index 6: age = 54, age = 54
 Matched row at index 0: age = 25, age = 25
 ```
+<hr>
 
+✅ Filter using x86 SIMD instructions AVX2 256(8 * i32)
+
+- for values equal to a threshold value
+```sh
+cargo run -- filter-simd-eq-avx users age 20
+```
+🟢 Output:
+
+```sh
+Matched value at index 8: 20
+Matched value at index 10: 20
+```
+- for values not equal to a threshold value
+
+```sh
+cargo run -- filter-simd-not-eq-avx users age 20
+```
+🟢 Output:
+
+```sh
+Matched value at index 0: 25
+Matched value at index 1: 32
+Matched value at index 2: 43
+Matched value at index 3: 54
+Matched value at index 4: 65
+Matched value at index 5: 35
+Matched value at index 6: 54
+Matched value at index 7: 19
+Matched value at index 9: 21
+Matched value at index 11: 22
+```
+
+- for values greater than threshold value
+
+```sh
+cargo run -- filter-simd-gt-avx users age 20
+```
+🟢 Output:
+
+```sh
+Matched value at index 0: 25
+Matched value at index 1: 32
+Matched value at index 2: 43
+Matched value at index 3: 54
+Matched value at index 4: 65
+Matched value at index 5: 35
+Matched value at index 6: 54
+Matched value at index 9: 21
+Matched value at index 11: 22
+```
+
+- for values lesser than threshold value
+
+```sh
+cargo run -- filter-simd-lt-avx users age 20
+```
+🟢 Output:
+
+```sh
+Matched value at index 7: 19
+```
+
+- for values greater than equal to a threshold value
+
+```sh
+cargo run -- filter-simd-gt-eq-avx users age 20
+```
+🟢 Output:
+
+```sh
+Matched value at index 0: 25
+Matched value at index 1: 32
+Matched value at index 2: 43
+Matched value at index 3: 54
+Matched value at index 4: 65
+Matched value at index 5: 35
+Matched value at index 6: 54
+Matched value at index 8: 20
+Matched value at index 9: 21
+Matched value at index 10: 20
+Matched value at index 11: 22
+```
+
+- for values lesser than equal to a threshold value
+
+```sh
+cargo run -- filter-simd-lt-eq-avx users age 20
+```
+🟢 Output:
+
+```sh
+Matched value at index 7: 19
+Matched value at index 8: 20
+Matched value at index 10: 20
+```
 
 ✅ List tables
 

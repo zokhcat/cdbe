@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs::{self, File, OpenOptions}, io::{BufRead, BufReader, Read, Seek, SeekFrom, Write}, vec};
 
 use super::table::TableSchema;
-use crate::utils::simd::{filter_simd_32, filter_with_logical_op, LogicalOp, SimdOp};
+use crate::utils::simd::{filter_simd_32, filter_simd_32_avx, filter_with_logical_op, LogicalOp, SimdOp};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Column {
@@ -206,6 +206,16 @@ impl ColumnStore  {
                 "Matched row at index {}: {} = {}, {} = {}",
                 idx, col1, buf1[idx], col2, buf2[idx]
             );
+        }
+    }
+
+    pub fn filter_column_simd_avx(&self, table: &TableSchema, column_name: &str, threshold_value: i32, op: SimdOp) {
+        let buffer = self.read_column_i32(table, column_name);
+    
+        let matching_indices = filter_simd_32_avx(&buffer, threshold_value, op);
+    
+        for idx in matching_indices {
+            println!("Matched value at index {}: {}", idx, buffer[idx]);
         }
     }
 

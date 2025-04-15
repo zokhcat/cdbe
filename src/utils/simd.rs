@@ -90,6 +90,64 @@ pub fn filter_with_logical_op(
     combine_masks(&mask1, &mask2, logic_op)
 }
 
+pub fn filter_simd_32_avx(buffer: &[i32], threshold_value: i32, op: SimdOp) -> Vec<usize> {
+    let mut results: Vec<usize> = Vec::new();
+    let mut i = 0;
+    let len = buffer.len();
+
+    unsafe {
+        let cmp = _mm256_set1_epi32(threshold_value);
+
+        while i + 8 <= len {
+            let ptr = buffer[i..].as_ptr() as *const __m256i;
+            let chunk = _mm256_loadu_si256(ptr);
+            let mask = match op {
+                SimdOp::Eq => _mm256_cmpeq_epi32(chunk, cmp),
+                SimdOp::Ne => {
+                    let eq = _mm256_cmpeq_epi32(chunk, cmp);
+                    _mm256_cmpeq_epi32(_mm256_setzero_si256(), eq)
+                }
+                SimdOp::Lt => _mm256_cmpgt_epi32(cmp, chunk),
+                SimdOp::Gt => _mm256_cmpgt_epi32(chunk, cmp),
+                SimdOp::Le => {
+                    let gt = _mm256_cmpgt_epi32(chunk, cmp);
+                    _mm256_cmpeq_epi32(_mm256_setzero_si256(), gt)
+                }
+                SimdOp::Ge => {
+                    let lt = _mm256_cmpgt_epi32(cmp, chunk);
+                    _mm256_cmpeq_epi32(_mm256_setzero_si256(), lt)
+                }
+            };
+
+            let mask_array: [i32; 8] = std::mem::transmute(mask);
+
+            for j in 0..8 {
+                if mask_array[j] != 0 {
+                    results.push(i + j);
+                }
+            }
+
+            i += 8;
+        }
+    }
+
+    for j in i..len {
+        let matched = match op {
+            SimdOp::Eq => buffer[j] == threshold_value,
+            SimdOp::Ne => buffer[j] != threshold_value,
+            SimdOp::Lt => buffer[j] < threshold_value,
+            SimdOp::Gt => buffer[j] > threshold_value,
+            SimdOp::Le => buffer[j] <= threshold_value,
+            SimdOp::Ge => buffer[j] >= threshold_value,
+        };
+        if matched {
+            results.push(j);
+        }
+    }
+
+    results
+}
+
 pub fn combine_masks(mask1: &[usize], mask2: &[usize], op: LogicalOp) -> Vec<usize> {
     use LogicalOp::*;
 

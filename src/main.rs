@@ -87,6 +87,42 @@ enum Commands {
         logic: LogicalOp,
     },
 
+    FilterSimdEqAvx {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
+    FilterSimdNotEqAvx {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
+    FilterSimdGtAvx {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
+    FilterSimdLtAvx {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
+    FilterSimdGtEqAvx {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
+    FilterSimdLtEqAvx {
+        table_name: String,
+        column_name: String,
+        threshold_value: i32
+    },
+
     ListTables,
 }
 
@@ -101,6 +137,12 @@ fn main() {
             Ok(_) => println!("Created data directory at ./data"),
             Err(e) => eprintln!("Failed to create data directory: {}", e),
         }
+    }
+
+    if std::is_x86_feature_detected!("avx2") {
+        println!("AVX2 is supported!");
+    } else {
+        println!("AVX2 is NOT supported.");
     }
     
     let tables: HashMap<String, TableSchema> = TableSchema::load_metadata(base_path);
@@ -176,7 +218,6 @@ fn main() {
                 println!("Table '{}' not found.", table_name);
             }
         }
-
         Commands::FilterSimdLogical { table_name, column1, op1, value1, column2, op2, value2, logic } => {
             if let Some(schema) = tables.get(table_name) {
                 let store = ColumnStore::new(base_path);
@@ -190,6 +231,54 @@ fn main() {
                     *value2,
                     *logic,
                 );
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdEqAvx { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd_avx(schema, column_name, *threshold_value, SimdOp::Eq);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdNotEqAvx { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd_avx(schema, column_name, *threshold_value, SimdOp::Ne);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdGtAvx { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd_avx(schema, column_name, *threshold_value, SimdOp::Gt);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdLtAvx { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd_avx(schema, column_name, *threshold_value, SimdOp::Lt);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdLtEqAvx { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd_avx(schema, column_name, *threshold_value, SimdOp::Le);
+            } else {
+                println!("Table '{}' not found.", table_name);
+            }
+        }
+        Commands::FilterSimdGtEqAvx { table_name, column_name, threshold_value } => {
+            if let Some(schema) = tables.get(table_name) {
+                let store = ColumnStore::new(base_path);
+                store.filter_column_simd_avx(schema, column_name, *threshold_value, SimdOp::Ge);
             } else {
                 println!("Table '{}' not found.", table_name);
             }
